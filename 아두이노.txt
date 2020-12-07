@@ -1,0 +1,76 @@
+#include <SoftwareSerial.h>
+
+
+char appData;
+char out;
+String inData;
+SoftwareSerial BTSerial(4, 5); // 소프트웨어 시리얼 (TX,RX) 
+int inputPin = 7;     // 센서 신호핀0
+int val = 0;          // 센서 신호의 판별을 위한 변수
+int soundSensor = A0;                   // 사운드 센서 핀
+int led = 8;  // LED핀 8
+int threshold = 22;                      // 소리 크기 기준
+int trigPin = 3;
+int echoPin = 2;
+ 
+ 
+void setup(){
+Serial.begin(9600);
+BTSerial.begin(9600);
+    pinMode(inputPin, INPUT);    // 센서 Input 설정
+{               
+  pinMode(soundSensor, INPUT);  // 사운드 센서 입력으로 설정  
+  pinMode(led, OUTPUT);    
+}
+{      
+  pinMode(echoPin, INPUT);   // echoPin 입력    
+  pinMode(trigPin, OUTPUT);  // trigPin 출력    
+}
+}
+ 
+void loop(){
+  BTSerial.listen();
+  while(BTSerial.available()>0){
+  appData=BTSerial.read();
+  inData = String(appData);
+   while (appData=='a'){
+          // 센서 신호값을 읽어와서 val에 저
+
+  if( analogRead(soundSensor) >= threshold){    // 감지된 소리의 크기가 30 이상일 때
+        BTSerial.println("s");
+        delay(200);
+  }
+
+
+  long duration, distance;
+  digitalWrite(trigPin, HIGH);  // trigPin에서 초음파 발생(echoPin도 HIGH)        
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin, HIGH);    // echoPin 이 HIGH를 유지한 시간을 저장 한다.
+distance = duration / 29 / 2;//센치미터로 환산
+val = digitalRead(inputPin); 
+if(distance > 120 && distance < 1000 && val == HIGH ){
+  
+  BTSerial.print("case1,");
+BTSerial.print(distance);
+BTSerial.println("cm");
+BTSerial.println();
+delay(1000);
+
+}
+if(distance < 120 && distance > 0 && val == HIGH ){
+  
+  BTSerial.print("case2,");
+BTSerial.print(distance);
+BTSerial.println("cm");
+BTSerial.println();
+delay(1000);
+
+}
+
+  out=BTSerial.read(); //아두이노 종료
+  if (out=='b')
+  break;}
+}
+
+}
